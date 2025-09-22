@@ -1,6 +1,7 @@
 import * as yup from "yup";
+import { debounce } from "lodash";
 
-import { API_BASE_URL } from "../../../constants";
+import { API_BASE_URL, canadianAreaCodes } from "../../../constants";
 
 interface CorporationValidationResponse {
   valid: boolean;
@@ -20,6 +21,25 @@ const validateCorporationNumber = async (
   return validationResponse;
 };
 
+const corporationNumberValidationTest = async (value: string, ctx: yup.TestContext<yup.AnyObject>) => {
+  if (!value) {
+    return true;
+  }
+
+  try {
+    const validationResponse = await validateCorporationNumber(value);
+
+    return validationResponse.valid;
+  } catch (error) {
+    console.error(error);
+    return ctx.createError({
+      message: "Unable to verify corporation number.",
+    });
+  }
+};
+
+const debouncedCorporationNumberValidationTest = debounce(corporationNumberValidationTest, 500);
+
 export const profileDetailsSchema = yup
   .object({
     firstName: yup.string().trim().required().max(50),
@@ -29,32 +49,26 @@ export const profileDetailsSchema = yup
       .trim()
       .required()
       .length(10, "Phone number must have 10 digits")
-      .matches(/^[2-9]\d{9}$/, "Invalid Canadian phone number"),
+      .matches(/^[2-9]\d{9}$/, "Invalid Canadian phone number")
+      .test({
+        name: "Phone area code",
+        message: "Invalid Canadian phone number",
+        test: (value: string) => {
+          const areaCode = value.substring(0, 3);
+
+          return canadianAreaCodes.includes(areaCode);
+        },
+      }),
     corporationNumber: yup
       .string()
       .trim()
       .required()
       .max(9)
-      .test(
-        "corporationNumberValidityCheck",
-        "Invalid corporation number",
-        async (value, ctx) => {
-          if (!value) {
-            return true;
-          }
-
-          console.log("VAL: ", value);
-          try {
-            const validationResponse = await validateCorporationNumber(value);
-
-            return validationResponse.valid;
-          } catch (error) {
-            console.error(error);
-            return ctx.createError({
-              message: "Cannot verify corporation number at this time",
-            });
-          }
-        },
-      ),
+      .test({
+        name: "corporationNumberValidityCheck",
+        message: "Invalid corporation number",
+        exclusive: true,
+        test: debouncedCorporationNumberValidationTest
+      }),
   })
   .required();

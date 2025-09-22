@@ -4,7 +4,6 @@ import {
   Button,
   FormControl,
   FormLabel,
-  FormErrorMessage,
   HStack,
   Input,
   InputGroup,
@@ -30,12 +29,17 @@ interface CustomerProfile {
   corporationNumber: string;
 }
 
-const ProfileDetailsForm = () => {
+interface Props {
+  onContinue?: () => void;
+}
+
+const ProfileDetailsForm: React.FC<Props> = ({ onContinue }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState("");
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isValid, validatingFields },
   } = useForm<CustomerProfile>({
     defaultValues: {
@@ -47,9 +51,7 @@ const ProfileDetailsForm = () => {
     resolver: yupResolver(profileDetailsSchema),
     mode: "onBlur",
   });
-  console.log("Validating fields: ", validatingFields);
   const onSubmit: SubmitHandler<CustomerProfile> = async (data) => {
-    console.log(data);
     setIsSubmitting(true);
     setSubmissionError("");
 
@@ -67,12 +69,16 @@ const ProfileDetailsForm = () => {
         }
       })
       .catch((errorResponse) => {
-        console.log({ errorResponse });
         if (errorResponse.status === 400) {
           setSubmissionError(errorResponse.body.message);
         }
       });
     setIsSubmitting(false);
+    reset();
+
+    if (onContinue) {
+      onContinue();
+    }
   };
 
   return (
@@ -80,7 +86,7 @@ const ProfileDetailsForm = () => {
       padding="6"
       background="white"
       borderWidth="1px"
-      borderRadius="md"
+      borderRadius="lg"
       borderColor="gray.200"
     >
       {submissionError && (
@@ -89,34 +95,42 @@ const ProfileDetailsForm = () => {
           <AlertDescription>{submissionError}</AlertDescription>
         </Alert>
       )}
-      <Text textStyle="2xl">Onboarding Form</Text>
+      <Text fontSize="2xl" paddingBottom="4">
+        Onboarding Form
+      </Text>
       <form name="profileDetails" onSubmit={handleSubmit(onSubmit)}>
-        <Stack gap="4">
-          <HStack gap="10">
+        <Stack>
+          <HStack spacing="10">
             <FormControl isInvalid={!!errors.firstName}>
-              <FormLabel>First Name</FormLabel>
+              <FormLabel fontSize="sm">First Name</FormLabel>
               <Input {...register("firstName")} borderColor="gray.200" />
-              <FormErrorMessage>{errors.firstName?.message}</FormErrorMessage>
+              <Box height="12px" color="red.500" fontSize="xs" textAlign="left">
+                {errors.firstName?.message}
+              </Box>
             </FormControl>
 
             <FormControl isInvalid={!!errors.lastName}>
-              <FormLabel>Last Name</FormLabel>
+              <FormLabel fontSize="sm">Last Name</FormLabel>
               <Input {...register("lastName")} borderColor="gray.200" />
-              <FormErrorMessage>{errors.lastName?.message}</FormErrorMessage>
+              <Box height="15px" color="red.500" fontSize="xs" textAlign="left">
+                {errors.lastName?.message}
+              </Box>
             </FormControl>
           </HStack>
 
           <FormControl isInvalid={!!errors.phone}>
-            <FormLabel>Phone Number</FormLabel>
+            <FormLabel fontSize="sm">Phone Number</FormLabel>
             <InputGroup>
               <InputLeftAddon>+1</InputLeftAddon>
               <Input {...register("phone")} placeholder="406-451-5119" />
             </InputGroup>
-            <FormErrorMessage>{errors.phone?.message}</FormErrorMessage>
+            <Box height="15px" color="red.500" fontSize="xs" textAlign="left">
+              {errors.phone?.message}
+            </Box>
           </FormControl>
 
           <FormControl isInvalid={!!errors.corporationNumber}>
-            <FormLabel>Corporation Number</FormLabel>
+            <FormLabel fontSize="sm">Corporation Number</FormLabel>
             <InputGroup>
               <Input
                 {...register("corporationNumber")}
@@ -128,9 +142,9 @@ const ProfileDetailsForm = () => {
                 </InputRightElement>
               )}
             </InputGroup>
-            <FormErrorMessage>
+            <Box height="15px" color="red.500" fontSize="xs" textAlign="left">
               {errors.corporationNumber?.message}
-            </FormErrorMessage>
+            </Box>
           </FormControl>
 
           <Button
@@ -140,7 +154,7 @@ const ProfileDetailsForm = () => {
             disabled={!isValid}
             isLoading={isSubmitting}
           >
-            Submit<span>&#8594;</span>
+            Submit <span>&#8594;</span>
           </Button>
         </Stack>
       </form>
