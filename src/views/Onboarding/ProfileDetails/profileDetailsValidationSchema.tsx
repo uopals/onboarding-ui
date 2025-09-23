@@ -21,14 +21,16 @@ const validateCorporationNumber = async (
   return validationResponse;
 };
 
-const corporationNumberValidationTest = async (value: string, ctx: yup.TestContext<yup.AnyObject>) => {
+const corporationNumberValidationTest = async (
+  value: string,
+  ctx: yup.TestContext<yup.AnyObject>,
+) => {
   if (!value) {
     return true;
   }
 
   try {
     const validationResponse = await validateCorporationNumber(value);
-
     return validationResponse.valid;
   } catch (error) {
     console.error(error);
@@ -38,7 +40,10 @@ const corporationNumberValidationTest = async (value: string, ctx: yup.TestConte
   }
 };
 
-const debouncedCorporationNumberValidationTest = debounce(corporationNumberValidationTest, 500);
+const debouncedCorporationNumberValidationTest = debounce(
+  corporationNumberValidationTest,
+  500,
+);
 
 export const profileDetailsSchema = yup
   .object({
@@ -59,16 +64,11 @@ export const profileDetailsSchema = yup
           return canadianAreaCodes.includes(areaCode);
         },
       }),
-    corporationNumber: yup
-      .string()
-      .trim()
-      .required()
-      .max(9)
-      .test({
-        name: "corporationNumberValidityCheck",
-        message: "Invalid corporation number",
-        exclusive: true,
-        test: debouncedCorporationNumberValidationTest
-      }),
+    corporationNumber: yup.string().trim().required().max(9).test({
+      name: "corporationNumberValidityCheck",
+      message: "Invalid corporation number",
+      exclusive: true,
+      test: debouncedCorporationNumberValidationTest,
+    }),
   })
   .required();

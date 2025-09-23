@@ -1,4 +1,4 @@
-import { useForm, type SubmitHandler } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import {
   Box,
   Button,
@@ -40,7 +40,7 @@ const ProfileDetailsForm: React.FC<Props> = ({ onContinue }) => {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isValid, validatingFields },
+    formState: { errors, validatingFields, isValid },
   } = useForm<CustomerProfile>({
     defaultValues: {
       firstName: "",
@@ -51,7 +51,7 @@ const ProfileDetailsForm: React.FC<Props> = ({ onContinue }) => {
     resolver: yupResolver(profileDetailsSchema),
     mode: "onBlur",
   });
-  const onSubmit: SubmitHandler<CustomerProfile> = async (data) => {
+  const onSubmit = async (data: CustomerProfile) => {
     setIsSubmitting(true);
     setSubmissionError("");
 
@@ -102,16 +102,28 @@ const ProfileDetailsForm: React.FC<Props> = ({ onContinue }) => {
         <Stack>
           <HStack spacing="10">
             <FormControl isInvalid={!!errors.firstName}>
-              <FormLabel fontSize="sm">First Name</FormLabel>
-              <Input {...register("firstName")} borderColor="gray.200" />
+              <FormLabel htmlFor="firstName" fontSize="sm">
+                First Name
+              </FormLabel>
+              <Input
+                {...register("firstName")}
+                borderColor="gray.200"
+                id="firstName"
+              />
               <Box height="12px" color="red.500" fontSize="xs" textAlign="left">
                 {errors.firstName?.message}
               </Box>
             </FormControl>
 
             <FormControl isInvalid={!!errors.lastName}>
-              <FormLabel fontSize="sm">Last Name</FormLabel>
-              <Input {...register("lastName")} borderColor="gray.200" />
+              <FormLabel htmlFor="lastName" fontSize="sm">
+                Last Name
+              </FormLabel>
+              <Input
+                {...register("lastName")}
+                borderColor="gray.200"
+                id="lastName"
+              />
               <Box height="15px" color="red.500" fontSize="xs" textAlign="left">
                 {errors.lastName?.message}
               </Box>
@@ -119,10 +131,16 @@ const ProfileDetailsForm: React.FC<Props> = ({ onContinue }) => {
           </HStack>
 
           <FormControl isInvalid={!!errors.phone}>
-            <FormLabel fontSize="sm">Phone Number</FormLabel>
+            <FormLabel htmlFor="phone" fontSize="sm">
+              Phone Number
+            </FormLabel>
             <InputGroup>
               <InputLeftAddon>+1</InputLeftAddon>
-              <Input {...register("phone")} placeholder="406-451-5119" />
+              <Input
+                {...register("phone")}
+                placeholder="4064515119"
+                id="phone"
+              />
             </InputGroup>
             <Box height="15px" color="red.500" fontSize="xs" textAlign="left">
               {errors.phone?.message}
@@ -130,15 +148,18 @@ const ProfileDetailsForm: React.FC<Props> = ({ onContinue }) => {
           </FormControl>
 
           <FormControl isInvalid={!!errors.corporationNumber}>
-            <FormLabel fontSize="sm">Corporation Number</FormLabel>
+            <FormLabel htmlFor="corporationNumber" fontSize="sm">
+              Corporation Number
+            </FormLabel>
             <InputGroup>
               <Input
                 {...register("corporationNumber")}
                 borderColor="gray.200"
+                id="corporationNumber"
               />
               {validatingFields.corporationNumber && (
                 <InputRightElement>
-                  <Spinner color="gray.500" />
+                  <Spinner color="gray.500" id="corporationValidationSpinner" />
                 </InputRightElement>
               )}
             </InputGroup>
@@ -148,11 +169,13 @@ const ProfileDetailsForm: React.FC<Props> = ({ onContinue }) => {
           </FormControl>
 
           <Button
+            name="submit"
             type="submit"
             color="white"
             backgroundColor="gray.900"
             disabled={!isValid}
             isLoading={isSubmitting}
+            variant="solid"
           >
             Submit <span>&#8594;</span>
           </Button>
